@@ -16,6 +16,8 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
+        inputDecorationTheme:
+            InputDecorationTheme(border: OutlineInputBorder()),
         // This is the theme of your application.
         //
         // TRY THIS: Try running your application with "flutter run". You'll see
@@ -31,7 +33,10 @@ class MyApp extends StatelessWidget {
         //
         // This works for code too, not just values: Most code changes can be
         // tested with just a hot reload.
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+
+        //color for FAB
+        colorScheme: ColorScheme.fromSwatch(primarySwatch: Colors.blue)
+            .copyWith(secondary: const Color((0xff16e547))),
         useMaterial3: true,
       ),
       home: HomeScreen(),
@@ -39,20 +44,36 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text('Android Expert'),
       ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      floatingActionButton: FloatingActionButton.extended(
+          onPressed: () async {
+            setState(() {
+              //refresh fun  build
+            });
+          },
+          label: Row(
+            children: [Icon(Icons.add), Text(("Add Student"))],
+          )),
       body: FutureBuilder<List<StudentData>>(
         future: getStudents(),
         builder: (context, snapshot) {
           if (snapshot.hasData && snapshot.data != null) {
             return ListView.builder(
+                padding: EdgeInsets.only(bottom: 84),
                 itemCount: snapshot.data!.length,
                 itemBuilder: (context, index) {
                   return _Student(data: snapshot.data![index]);
@@ -73,7 +94,7 @@ class _Student extends StatelessWidget {
   //for show information
   final StudentData data;
 
-  const _Student({ required this.data});
+  const _Student({required this.data});
 
   @override
   Widget build(BuildContext context) {
@@ -129,8 +150,9 @@ class _Student extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(Icons.bar_chart_rounded, color: Colors.grey.shade400),
-              Text(data.score.toString(),
-              style: TextStyle(fontWeight: FontWeight.bold),
+              Text(
+                data.score.toString(),
+                style: TextStyle(fontWeight: FontWeight.bold),
               )
             ],
           ),
@@ -139,3 +161,70 @@ class _Student extends StatelessWidget {
     );
   }
 } //student class
+
+//form page
+class _AddStudentForms extends StatelessWidget {
+  //keep data for send to server
+  final TextEditingController firstNameController = TextEditingController();
+  final TextEditingController lastNameController = TextEditingController();
+  final TextEditingController courseController = TextEditingController();
+  final TextEditingController scoreController = TextEditingController();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("Add New Student"),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      floatingActionButton: FloatingActionButton.extended(
+          onPressed: () async {
+            try {
+              final newStudentData = await saveStudent(
+                  firstNameController.text,
+                  lastNameController.text,
+                  courseController.text,
+                  int.parse(scoreController.text));
+              Navigator.pop(context, newStudentData);
+            } catch (e) {
+              debugPrint(e.toString());
+            }
+          },
+          label: Row(
+            children: [Icon(Icons.check), Text('Save')],
+          )),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            TextField(
+              controller: firstNameController,
+              decoration: InputDecoration(label: Text("First Name")),
+            ),
+            SizedBox(
+              height: 8,
+            ),
+            TextField(
+              controller: lastNameController,
+              decoration: InputDecoration(label: Text("Last Name")),
+            ),
+            SizedBox(
+              height: 8,
+            ),
+            TextField(
+              controller: courseController,
+              decoration: InputDecoration(label: Text("Course")),
+            ),
+            SizedBox(
+              height: 8,
+            ),
+            TextField(
+              controller: scoreController,
+              decoration: InputDecoration(label: Text("Score")),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
