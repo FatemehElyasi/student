@@ -1,6 +1,6 @@
 # student
 
-# working whit Dio Server in flutter
+# working with Dio Server in flutter
 
 ## Getting Started
 
